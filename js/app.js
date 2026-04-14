@@ -205,9 +205,51 @@ const Toast = {
 //  Cell Expand Modal
 // ==========================================================================
 
+function formatExpandedValue(raw) {
+  // Try JSON pretty-print
+  try {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === 'object' && parsed !== null) {
+      return { html: syntaxHighlightJson(JSON.stringify(parsed, null, 2)), type: 'json' };
+    }
+  } catch (_) { /* not JSON */ }
+
+  // Try XML/HTML detection
+  if (/^\s*<[\s\S]*>/.test(raw)) {
+    return { html: escapeHtml(raw), type: 'xml' };
+  }
+
+  return { html: escapeHtml(raw), type: 'text' };
+}
+
+function syntaxHighlightJson(json) {
+  const escaped = escapeHtml(json);
+  return escaped.replace(
+    /("(?:\\.|[^"\\])*")\s*:/g,
+    '<span style="color:var(--accent);font-weight:600;">$1</span>:'
+  ).replace(
+    /:\s*("(?:\\.|[^"\\])*")/g,
+    ': <span style="color:var(--success);">$1</span>'
+  ).replace(
+    /:\s*(\d+\.?\d*)/g,
+    ': <span style="color:var(--warning);">$1</span>'
+  ).replace(
+    /:\s*(true|false)/g,
+    ': <span style="color:var(--info);">$1</span>'
+  ).replace(
+    /:\s*(null)/g,
+    ': <span style="color:var(--text-muted);font-style:italic;">$1</span>'
+  );
+}
+
 function showCellExpand(columnName, rawValue) {
   const existing = document.getElementById('cell-expand-modal');
   if (existing) existing.remove();
+
+  const { html: formattedHtml, type: dataType } = formatExpandedValue(rawValue);
+  const typeBadge = dataType !== 'text'
+    ? `<span class="type-badge type-badge-${dataType === 'json' ? 'string' : 'other'}" style="margin-left:8px;">${dataType.toUpperCase()}</span>`
+    : '';
 
   const overlay = document.createElement('div');
   overlay.id = 'cell-expand-modal';
@@ -215,12 +257,13 @@ function showCellExpand(columnName, rawValue) {
   overlay.innerHTML = `
     <div class="cell-expand-box">
       <div class="cell-expand-header">
-        <span>${escapeHtml(columnName)}</span>
+        <span>${escapeHtml(columnName)}${typeBadge}</span>
         <button class="modal-close" data-action="close">&times;</button>
       </div>
-      <div class="cell-expand-body">${escapeHtml(rawValue)}</div>
+      <div class="cell-expand-body">${formattedHtml}</div>
       <div class="cell-expand-footer">
         <button class="btn btn-secondary btn-sm" id="btn-copy-cell">Copy</button>
+        ${dataType === 'json' ? '<button class="btn btn-ghost btn-sm" id="btn-toggle-raw">Raw</button>' : ''}
         <button class="btn btn-ghost btn-sm" data-action="close">Close</button>
       </div>
     </div>
@@ -234,12 +277,35 @@ function showCellExpand(columnName, rawValue) {
   });
 
   overlay.querySelector('#btn-copy-cell').addEventListener('click', () => {
-    navigator.clipboard.writeText(rawValue).then(() => {
+    // Copy the pretty-printed version for JSON, raw for others
+    let copyText = rawValue;
+    try {
+      const parsed = JSON.parse(rawValue);
+      if (typeof parsed === 'object') copyText = JSON.stringify(parsed, null, 2);
+    } catch (_) { /* use raw */ }
+    navigator.clipboard.writeText(copyText).then(() => {
       Toast.success('Copied to clipboard');
     }).catch(() => {
       Toast.warning('Copy failed — select text manually');
     });
   });
+
+  // Toggle between pretty and raw for JSON
+  const toggleBtn = overlay.querySelector('#btn-toggle-raw');
+  if (toggleBtn) {
+    let showingRaw = false;
+    toggleBtn.addEventListener('click', () => {
+      const body = overlay.querySelector('.cell-expand-body');
+      showingRaw = !showingRaw;
+      if (showingRaw) {
+        body.innerHTML = escapeHtml(rawValue);
+        toggleBtn.textContent = 'Pretty';
+      } else {
+        body.innerHTML = formattedHtml;
+        toggleBtn.textContent = 'Raw';
+      }
+    });
+  }
 }
 
 // ==========================================================================
