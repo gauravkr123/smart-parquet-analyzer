@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-accent="blue" data-density="normal" data-font-size="medium">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parquet Explorer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Shown only when opened via file:// -->
+  <div id="file-protocol-warning" style="display:none;">
+    <div style="max-width:600px;margin:80px auto;padding:32px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#333;">
+      <div style="font-size:3rem;margin-bottom:16px;">&#9888;</div>
+      <h1 style="font-size:1.5rem;margin-bottom:12px;">Cannot open directly as a file</h1>
+      <p style="color:#666;line-height:1.6;margin-bottom:24px;">
+        DuckDB-WASM needs an HTTP server to load its WebAssembly engine.<br>
+        Browsers block this when opening HTML files directly (<code>file://</code>).
+      </p>
+      <div style="background:#f5f5f5;border-radius:8px;padding:20px;text-align:left;font-size:0.9rem;">
+        <p style="font-weight:600;margin-bottom:8px;">Quick fix — run one of these in this folder:</p>
+        <pre style="background:#1e1e2e;color:#e0e0e0;padding:12px;border-radius:6px;overflow-x:auto;margin-bottom:8px;font-size:0.85rem;">python3 -m http.server 8080</pre>
+        <pre style="background:#1e1e2e;color:#e0e0e0;padding:12px;border-radius:6px;overflow-x:auto;margin-bottom:8px;font-size:0.85rem;">npx serve .</pre>
+        <p style="color:#666;margin-top:8px;">Then open <a href="http://localhost:8080" style="color:#4263eb;">http://localhost:8080</a></p>
+        <p style="color:#666;margin-top:12px;">Or just use <code style="background:#e9ecef;padding:2px 6px;border-radius:3px;">make serve</code> if you have Make installed.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actual app (hidden when file:// detected) -->
+  <div id="app-root">
+    <header class="topbar">
+      <div class="topbar__left">
+        <button class="topbar__toggle-sidebar" id="btn-toggle-sidebar" aria-label="Toggle sidebar">&#9776;</button>
+        <span class="topbar__brand">Parquet Explorer</span>
+      </div>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__right">
+        <span class="topbar__status" id="db-status" style="font-size:0.75rem;opacity:0.8">Loading DuckDB...</span>
+        <button class="topbar__btn" id="btn-settings" aria-label="Settings">&#9881; Settings</button>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar__body">
+          <div class="sidebar__section">
+            <div class="sidebar__section-title">Upload</div>
+            <div class="dropzone" id="drop-zone">
+              <div class="dropzone__icon">&#128196;</div>
+              <div class="dropzone__title">Drop .parquet files here</div>
+              <div class="dropzone__subtitle">or click to browse</div>
+            </div>
+            <input type="file" id="file-upload-input" accept=".parquet,.parq,.pq" multiple hidden>
+          </div>
+          <div class="sidebar__section">
+            <div class="sidebar__section-title">Files</div>
+            <div id="file-list" class="sidebar__file-list">
+              <div class="file-list-empty">No files loaded</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <nav class="tab-bar">
+          <button class="tab-bar__item tab-active" data-tab="data">Data</button>
+          <button class="tab-bar__item" data-tab="schema">Schema</button>
+          <button class="tab-bar__item" data-tab="sql">SQL</button>
+          <button class="tab-bar__item" data-tab="stats">Statistics</button>
+          <button class="tab-bar__item" data-tab="charts">Charts</button>
+          <button class="tab-bar__item" data-tab="metadata">Metadata</button>
+          <button class="tab-bar__item" data-tab="transforms">Transforms</button>
+        </nav>
+
+        <div class="tab-panel tab-content-active" data-tab-content="data"></div>
+        <div class="tab-panel" data-tab-content="schema" style="display:none"></div>
+        <div class="tab-panel" data-tab-content="sql" style="display:none"></div>
+        <div class="tab-panel" data-tab-content="stats" style="display:none"></div>
+        <div class="tab-panel" data-tab-content="charts" style="display:none"></div>
+        <div class="tab-panel" data-tab-content="metadata" style="display:none"></div>
+        <div class="tab-panel" data-tab-content="transforms" style="display:none"></div>
+      </main>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <script>
+    // Detect file:// protocol and show instructions instead of broken app
+    if (window.location.protocol === 'file:') {
+      document.getElementById('file-protocol-warning').style.display = 'block';
+      document.getElementById('app-root').style.display = 'none';
+    }
+  </script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
