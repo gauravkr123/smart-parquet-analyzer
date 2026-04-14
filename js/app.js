@@ -202,6 +202,47 @@ const Toast = {
 };
 
 // ==========================================================================
+//  Cell Expand Modal
+// ==========================================================================
+
+function showCellExpand(columnName, rawValue) {
+  const existing = document.getElementById('cell-expand-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'cell-expand-modal';
+  overlay.className = 'cell-expand-overlay';
+  overlay.innerHTML = `
+    <div class="cell-expand-box">
+      <div class="cell-expand-header">
+        <span>${escapeHtml(columnName)}</span>
+        <button class="modal-close" data-action="close">&times;</button>
+      </div>
+      <div class="cell-expand-body">${escapeHtml(rawValue)}</div>
+      <div class="cell-expand-footer">
+        <button class="btn btn-secondary btn-sm" id="btn-copy-cell">Copy</button>
+        <button class="btn btn-ghost btn-sm" data-action="close">Close</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target.closest('[data-action="close"]')) {
+      overlay.remove();
+    }
+  });
+
+  overlay.querySelector('#btn-copy-cell').addEventListener('click', () => {
+    navigator.clipboard.writeText(rawValue).then(() => {
+      Toast.success('Copied to clipboard');
+    }).catch(() => {
+      Toast.warning('Copy failed — select text manually');
+    });
+  });
+}
+
+// ==========================================================================
 //  State Management
 // ==========================================================================
 
@@ -1295,7 +1336,8 @@ const DataTable = {
           const colInfo = schemaMap[col];
           const isNum = colInfo ? isNumericType(colInfo.type) : false;
           const cellClass = isNum ? 'text-right' : '';
-          html += `<td class="${cellClass} cell-truncate">${formatCellValue(val, nullDisplay)}</td>`;
+          const rawStr = val != null ? String(val) : '';
+          html += `<td class="${cellClass} cell-truncate" data-col="${escapeHtml(col)}" data-raw="${escapeHtml(rawStr)}">${formatCellValue(val, nullDisplay)}</td>`;
         }
         html += '</tr>';
       }
@@ -1407,6 +1449,16 @@ const DataTable = {
         State.filters.splice(idx, 1);
         State.currentPage = 1;
         this.load();
+      });
+    });
+
+    // Click cell to expand
+    container.querySelectorAll('.cell-truncate').forEach(td => {
+      td.addEventListener('dblclick', () => {
+        const col = td.getAttribute('data-col') || '';
+        const raw = td.getAttribute('data-raw') || '';
+        if (raw === '' && !td.querySelector('.null-value')) return;
+        showCellExpand(col, raw);
       });
     });
 
