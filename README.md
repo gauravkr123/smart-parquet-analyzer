@@ -2,25 +2,6 @@
 
 A fully client-side Parquet file explorer that runs entirely in your browser. No server, no uploads, no data leaves your machine. Powered by [DuckDB-WASM](https://duckdb.org/docs/api/wasm/overview.html).
 
-**Live demo:** `https://<your-username>.github.io/parquet-explorer-web/`
-
-## Deploy to GitHub Pages
-
-```bash
-# 1. Create a repo on GitHub, then:
-cd parquet-explorer-web
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin git@github.com:<your-username>/parquet-explorer-web.git
-git push -u origin main
-
-# 2. Go to repo Settings → Pages → Source: Deploy from a branch → main / root
-# 3. Your site will be live in ~1 minute
-```
-
-Or just open `index.html` locally in any modern browser — it works without a server.
-
 ## Features
 
 ### File Management
