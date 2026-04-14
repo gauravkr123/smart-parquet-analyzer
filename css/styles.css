@@ -168,7 +168,12 @@ body {
    7. App Body & Sidebar
    ========================================================================== */
 
-.app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
+#app-root {
+  display: flex; flex-direction: column;
+  flex: 1; min-height: 0; overflow: hidden;
+}
+
+.app-body { display: flex; flex: 1; overflow: hidden; position: relative; min-height: 0; }
 
 .sidebar {
   width: var(--sidebar-width); min-width: var(--sidebar-width);
