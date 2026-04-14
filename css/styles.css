@@ -265,9 +265,9 @@ body {
 
 .tab-panel {
   flex: 1; overflow: auto; padding: var(--spacing-md);
-  display: none;
+  display: none; min-height: 0;
 }
-.tab-content-active { display: block; }
+.tab-content-active { display: flex; flex-direction: column; }
 
 /* ==========================================================================
    10. Data Table
@@ -278,6 +278,7 @@ body {
   border-radius: var(--radius-md);
   transition: border-color var(--transition-normal);
   margin-bottom: var(--spacing-md);
+  flex: 1; min-height: 0;
 }
 .data-table {
   width: 100%; border-collapse: collapse;
@@ -312,8 +313,40 @@ body {
 
 /* Cell types */
 .text-right { text-align: right; }
-.cell-truncate { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cell-truncate { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.cell-truncate:hover { background-color: var(--accent-light); }
 .null-value { color: var(--text-muted); font-style: italic; opacity: 0.65; }
+
+.cell-expand-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+  z-index: 200; display: flex; align-items: center; justify-content: center;
+  animation: fade-in var(--transition-normal) ease;
+}
+.cell-expand-box {
+  background-color: var(--bg-primary); border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  width: 90%; max-width: 700px; max-height: 80vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: slide-up var(--transition-normal) ease;
+}
+.cell-expand-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  font-size: var(--font-sm); font-weight: 600; color: var(--text-secondary);
+}
+.cell-expand-body {
+  padding: var(--spacing-md); overflow: auto; flex: 1;
+  font-family: var(--mono-font); font-size: var(--font-sm);
+  white-space: pre-wrap; word-break: break-all; line-height: 1.6;
+  color: var(--text-primary); user-select: text;
+}
+.cell-expand-footer {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-top: 1px solid var(--border-color);
+  display: flex; justify-content: flex-end; gap: var(--spacing-sm);
+}
 
 /* ==========================================================================
    11. Data Toolbar (JS-generated)
